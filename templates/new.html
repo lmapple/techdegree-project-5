@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% from "macros.html" import render_field %}
+
+{% block title %}{{ super() }}{% endblock %}
+
+{% block content %}
+
+        <section>
+            <div class="container">
+                <div class="new-entry">
+                    <h2>New Entry</h2>
+                    <form method="POST" action="" class="form">
+                        {{ form.hidden_tag() }}
+                        {% for field in form %}
+                            {{ render_field(field) }}
+                        {% endfor %}
+                        <label for="what-i-learned">What I Learned</label>
+                        <textarea id="what-i-learned" rows="5" name="whatILearned"></textarea>
+                        <label for="resources-to-remember">Resources to Remember</label>
+                        <textarea id="resources-to-remember" rows="5" name="ResourcesToRemember"></textarea>
+                        <input type="submit" value="Publish Entry" class="button">
+                        <a href="{{ url_for('index') }}" class="button button-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+{% endblock %}
