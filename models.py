@@ -21,11 +21,15 @@ class User(UserMixin, Model):
 
     @classmethod
     def create_user(cls, username, email, password, is_admin=False):
-        cls.create(
-            username=username,
-            email=email,
-            password=generate_password_hash(password),
-            is_admin=is_admin)
+        try:
+            with DATABASE.transaction():
+                cls.create(
+                    username=username,
+                    email=email,
+                    password=generate_password_hash(password),
+                    is_admin=is_admin)
+        except IntegrityError:
+            raise ValueError("User already exists.")
 
     def validate_password(User, password):
         if check_password_hash(User.password, password):

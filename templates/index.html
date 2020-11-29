@@ -4,27 +4,16 @@
 
 {% block content %}
 
+{% for entry in user_entries %}
         <section>
             <div class="container">
                 <div class="entry-list">
                     <article>
-                        <h2><a href="detail.html">The best day I’ve ever had</a></h2>
-                        <time datetime="2016-01-31">January 31, 2016</time>
-                    </article>
-                    <article>
-                        <h2><a href="detail_2.html">The absolute worst day I’ve ever had</a></h2>
-                        <time datetime="2016-01-31">January 31, 2016</time>
-                    </article>
-                    <article>
-                        <h2><a href="detail_3.html">That time at the mall</a></h2>
-                        <time datetime="2016-01-31">January 31, 2016</time>
-                    </article>
-                    <article>
-                        <h2><a href="detail_4.html">Dude, where’s my car?</a></h2>
-                        <time datetime="2016-01-31">January 31, 2016</time>
+                        <h2><a href="{{ url_for('entries', user_entries=user_entries)  }}">{{ entry.title }}</a></h2>
+                        <time datetime="{{ entry.date.strftime('%m/%d/%Y') }}">{{ entry.date }}</time>
                     </article>
                 </div>
             </div>
         </section>
-
+{% endfor %}
 {% endblock %}

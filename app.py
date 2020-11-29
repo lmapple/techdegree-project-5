@@ -67,7 +67,9 @@ def index():
 #Will act as the Listing route just like /
 @app.route('/entries')
 def entries():
-    return render_template('index.html')
+    user_entries = models.Entry.select().limit(20)
+    #https://peewee.readthedocs.io/en/latest/peewee/playhouse.html?highlight=pagination#PaginatedQuery
+    return render_template('index.html', user_entries=user_entries)
 
 
 @app.route('/register', methods=('GET','POST'))
@@ -104,7 +106,8 @@ def new_entry():
 #The Detail Route
 @app.route('/entries/<id>')
 @login_required
-def detail_entry(id):
+def detail_entry(id=id):
+    
     return render_template('detail.html')
 
 #The Edit or Update route
