@@ -4,16 +4,28 @@
 
 {% block content %}
 
-{% for entry in user_entries %}
+{% if current_user.is_authenticated %}
+    {% for entry in user_entries %}
+            <section>
+                <div class="container">
+                    <div class="entry-list">
+                        <article>
+                            <h2><a href="{{ url_for('detail_entry', id=entry.id)  }}">{{ entry.title }}</a></h2>
+                            <time datetime="{{ entry.date }}">{{ entry.date.strftime('%m/%d/%Y') }}</time>
+                        </article>
+                    </div>
+                </div>
+            </section>
+    {% endfor %}
+{% else %}
         <section>
             <div class="container">
                 <div class="entry-list">
                     <article>
-                        <h2><a href="{{ url_for('entries', user_entries=user_entries)  }}">{{ entry.title }}</a></h2>
-                        <time datetime="{{ entry.date.strftime('%m/%d/%Y') }}">{{ entry.date }}</time>
+                        <h2>Welcome to the Learning Journal. Please login to add or view content.</h2>
                     </article>
                 </div>
             </div>
         </section>
-{% endfor %}
+{% endif %}
 {% endblock %}

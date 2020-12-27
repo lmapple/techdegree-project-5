@@ -40,6 +40,17 @@ class User(UserMixin, Model):
     def get_entries(self):
         return Entry.select().where(Entry.username == self)
 
+    def get_tagged_entries(self):
+        pass
+        """
+        return (
+            User.select().join(
+                Tag, on=Tag.to_user
+            ).where(
+                Tag.from_user == self)
+        )                
+        """
+
 class Entry(Model):
     timestamp = DateTimeField(default=datetime.datetime.now)
     username = ForeignKeyField(
@@ -47,11 +58,12 @@ class Entry(Model):
         related_name='entries'
     )
     title = TextField()
-    date = DateField()
+    date = DateField(default=datetime.datetime.now)
     time_spent = TextField()
     what_i_learned = TextField()
     resources_to_remember = TextField()
     last_updated = DateTimeField(default=datetime.datetime.now)
+
 
     class Meta:
         database = DATABASE
@@ -82,8 +94,8 @@ class Entry(Model):
     def delete_entry(self):
         pass
 
-"""
-class Relationship(Model):
+
+class Tag(Model):
     from_user = ForeignKeyField(User, related_name='relationships')
     to_user = ForeignKeyField(User, related_name='related_to')
 
@@ -92,10 +104,6 @@ class Relationship(Model):
         indexes = (
             (('from_user', 'to_user'), True)
         )
-
-"""
-class Tag(Model):
-    pass
 
 
 

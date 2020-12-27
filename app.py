@@ -95,34 +95,34 @@ def new_entry():
         models.Entry.create(username=g.username._get_current_object(),
                             title=form.title.data.strip(),
                             date=form.date.data,
-                            time_spent=form.time_spent.data.strip(),
+                            time_spent=form.time_spent.data,
                             what_i_learned=form.what_i_learned.data.strip(),
                             resources_to_remember=form.resources_to_remember.data.strip()
                             )
         flash("Entry has been successfully posted.", "success")
         return redirect(url_for('index'))
     return render_template('new.html', form=form)
-"""
+
 #The Detail Route
 @app.route('/entries/<id>')
 @login_required
-def detail_entry(id=id):
-    
-    return render_template('detail.html')
+def detail_entry(id):
+    entry = models.Entry.get(models.Entry.id == id)
+    return render_template('detail.html', entry=entry)
 
 #The Edit or Update route
 @app.route('/entries/<id>/edit')
 @login_required
 def edit_entry(id):
-    return render_template('edit.html')
+    return render_template('edit.html',id=id)
 
 #The Delete route
 @app.route('/entries/<id>/delete', methods=('POST',))
 @login_required
 def delete_entry(id):
     flash("Entry has been successfully deleted.", "success")
-    return redirect(url_for('index'))
-"""
+    return redirect(url_for('index'), id=id)
+
 
 @app.route('/logout')
 @login_required
