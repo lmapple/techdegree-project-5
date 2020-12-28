@@ -6,6 +6,7 @@ from flask_login import (LoginManager, login_user, logout_user,
                          login_required, current_user)
 
 
+import datetime
 import forms
 import models
 
@@ -86,13 +87,13 @@ def register():
     return render_template('register.html', form=form)
 
 
-#The Create route
-@app.route('/entries/new', methods=('GET','POST')   )
+#The Create Route
+@app.route('/entries/new', methods=('GET','POST'))
 @login_required
 def new_entry():
     form = forms.NewEntry()
     if form.validate_on_submit():
-        models.Entry.create(username=g.username._get_current_object(),
+        models.Entry.create_entry(username=g.username._get_current_object(),
                             title=form.title.data.strip(),
                             date=form.date.data,
                             time_spent=form.time_spent.data,
@@ -110,19 +111,35 @@ def detail_entry(id):
     entry = models.Entry.get(models.Entry.id == id)
     return render_template('detail.html', entry=entry)
 
-#The Edit or Update route
-@app.route('/entries/<id>/edit')
+#The Edit or Update Route
+@app.route('/entries/<id>/edit', methods=('GET','POST'))
 @login_required
 def edit_entry(id):
-    return render_template('edit.html',id=id)
+    entry = models.Entry.get(models.Entry.id == id)
+    form = forms.EditEntry(title=entry.title,date=entry.date,time_spent=entry.time_spent,
+                           what_i_learned=entry.what_i_learned,
+                           resources_to_remember=entry.resources_to_remember)
+    if form.validate_on_submit():
+        entry.username = g.username._get_current_object()
+        entry.title = form.title.data.strip()
+        entry.date = form.date.data
+        entry.time_spent = form.time_spent.data
+        entry.what_i_learned = form.what_i_learned.data.strip()
+        entry.resources_to_remember = form.resources_to_remember.data.strip()
+        entry.last_updated = datetime.datetime.now()
+        entry.save()
+        flash("Entry has been successfully updated.", "success")
+        return redirect(url_for('index'))
+    return render_template('edit.html', entry=entry, form=form)
 
-#The Delete route
-@app.route('/entries/<id>/delete', methods=('POST',))
+#The Delete Route
+@app.route('/entries/<id>/delete', methods=('GET','POST'))
 @login_required
 def delete_entry(id):
+    entry = models.Entry.get(models.Entry.id == id)
+    entry.delete_instance()
     flash("Entry has been successfully deleted.", "success")
-    return redirect(url_for('index'), id=id)
-
+    return redirect(url_for('index'))
 
 @app.route('/logout')
 @login_required
@@ -133,16 +150,7 @@ def logout():
 
 
 if __name__ == '__main__':
+
     models.initialize()
-    """
-    try:
-        models.User.create_user(
-            username='lisa',
-            email='lisa@lisa.com',
-            password='password1234'
-            admin=True
-        )
-    except ValueError:
-        pass
-    """
+
     app.run(debug=DEBUG, host=HOST, port=PORT)
