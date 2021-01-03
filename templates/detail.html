@@ -22,6 +22,17 @@
                             <h3>Resources to Remember:</h3>
                             <p>{{ entry.resources_to_remember }}</p>
                         </div>
+                        <div class="entry">
+                            <h3>Tags:</h3>
+                            <ul>
+                                {% for tag in entry.get_tag_names() %}
+                                    <li>
+                                        <a href="{{ url_for('tagged_entries', tag_name=tag.tag_name)  }}">
+                                            {{ tag.tag_name }} </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
                     </article>
                 </div>
             </div>

@@ -1,6 +1,6 @@
 import datetime
 
-from models import User, Entry
+from models import User
 from flask_wtf import Form
 
 from wtforms import StringField, PasswordField, DateField, TextAreaField, IntegerField
@@ -59,6 +59,7 @@ class NewEntry(Form):
     what_i_learned = TextAreaField('What I Learned', validators=[DataRequired()])
     resources_to_remember = TextAreaField('Resources to Remember',
                                         validators=[DataRequired()])
+    tags = StringField('Tags', validators=[DataRequired()])
 
 
 class EditEntry(Form):
@@ -68,3 +69,4 @@ class EditEntry(Form):
     what_i_learned = TextAreaField('What I Learned', validators=[DataRequired()])
     resources_to_remember = TextAreaField('Resources to Remember',
                                         validators=[DataRequired()])
+    tags = StringField('Tags', validators=[DataRequired()])

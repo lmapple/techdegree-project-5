@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from flask import (Flask, render_template, redirect, flash, url_for, g
-                   )
+from flask import (Flask, render_template, redirect, flash, url_for, g,
+                   abort)
 from flask_login import (LoginManager, login_user, logout_user,
                          login_required, current_user)
 
@@ -42,6 +42,7 @@ def load_user(userid):
     except models.DoesNotExist:
         return None
 
+
 @app.route('/login', methods=('GET', 'POST'))
 def login():
     form = forms.LoginForm()
@@ -58,6 +59,7 @@ def login():
             else:
                 flash("Your username or password is incorrect", "error")
     return render_template('login.html', form=form)
+
 
 #Homepage, acts as the Listing route
 @app.route('/')
@@ -98,8 +100,19 @@ def new_entry():
                             date=form.date.data,
                             time_spent=form.time_spent.data,
                             what_i_learned=form.what_i_learned.data.strip(),
-                            resources_to_remember=form.resources_to_remember.data.strip()
+                            resources_to_remember=form.resources_to_remember.data.strip(),
                             )
+        tag_list = form.tags.data.replace(","," ").split()
+        for tag in tag_list:
+            if models.DoesNotExist():
+                try:
+                    models.Tag.create_tag(tag)
+                except models.IntegrityError:
+                    pass
+            models.TagEntry_Relationship.create_relationship(
+                tag=tag,
+                entry=form.title.data.strip()
+            )
         flash("Entry has been successfully posted.", "success")
         return redirect(url_for('index'))
     return render_template('new.html', form=form)
@@ -116,9 +129,17 @@ def detail_entry(id):
 @login_required
 def edit_entry(id):
     entry = models.Entry.get(models.Entry.id == id)
+    tags = models.Entry.get(models.Entry.id == id).get_tag_names()
+    tag_list = []
+    for tag in tags:
+        tag_list.append(tag.tag_name)
+    tag_string = ", ".join(tag_list)
+
     form = forms.EditEntry(title=entry.title,date=entry.date,time_spent=entry.time_spent,
                            what_i_learned=entry.what_i_learned,
-                           resources_to_remember=entry.resources_to_remember)
+                           resources_to_remember=entry.resources_to_remember, tags=tag_string)
+    tag_list = form.tags.data.replace(",", " ").split()
+    #Need to update the changes to tags
     if form.validate_on_submit():
         entry.username = g.username._get_current_object()
         entry.title = form.title.data.strip()
@@ -126,6 +147,7 @@ def edit_entry(id):
         entry.time_spent = form.time_spent.data
         entry.what_i_learned = form.what_i_learned.data.strip()
         entry.resources_to_remember = form.resources_to_remember.data.strip()
+        entry.tags = form.tags.data.strip()
         entry.last_updated = datetime.datetime.now()
         entry.save()
         flash("Entry has been successfully updated.", "success")
@@ -137,6 +159,8 @@ def edit_entry(id):
 @login_required
 def delete_entry(id):
     entry = models.Entry.get(models.Entry.id == id)
+    for tag in entry.get_tag_names():
+
     entry.delete_instance()
     flash("Entry has been successfully deleted.", "success")
     return redirect(url_for('index'))
@@ -147,6 +171,16 @@ def logout():
     logout_user()
     flash("You have been successfully logged out.", "success")
     return redirect(url_for('index'))
+
+
+@app.route('/entries/tag/<tag_name>')
+@login_required
+def tagged_entries(tag_name):
+    user_entries = models.Tag.get(models.Tag.tag_name == tag_name).get_tagged_entries().limit(20)
+    return render_template('index.html', user_entries=user_entries)
+
+
+
 
 
 if __name__ == '__main__':

@@ -37,20 +37,7 @@ class User(UserMixin, Model):
         else:
             return False
 
-"""    def get_entries(self):
-        return Entry.select().where(Entry.username == self)
 
-    def get_tagged_entries(self):
-        pass
-        """
-"""
-        return (
-            User.select().join(
-                Tag, on=Tag.to_user
-            ).where(
-                Tag.from_user == self)
-        )                
-        """
 
 class Entry(Model):
     timestamp = DateTimeField(default=datetime.datetime.now)
@@ -80,39 +67,72 @@ class Entry(Model):
             date=date,
             time_spent=time_spent,
             what_i_learned=what_i_learned,
-            resources_to_remember=resources_to_remember
+            resources_to_remember=resources_to_remember,
         )
 
-"""    def edit_entry(self, title, date, time_spent, what_i_learned,
-                  resources_to_remember):
-        self.update(
-            title=title,
-            date=date,
-            time_spent=time_spent,
-            what_i_learned=what_i_learned,
-            resources_to_remember=resources_to_remember
+    def get_tag_names(self):
+        return (
+            Tag.select().join(
+                TagEntry_Relationship, on=TagEntry_Relationship.entry_tags
+            ).where(
+                TagEntry_Relationship.tagged_entries == self)
+
         )
 
-    def delete_entry(self):
-        pass"""
 
 
-"""class Tag(Model):
-    from_user = ForeignKeyField(User, related_name='relationships')
-    to_user = ForeignKeyField(User, related_name='related_to')
+class Tag(Model):
+    tag_name = TextField(unique=True)
+
+    @classmethod
+    def create_tag(cls, tag_name):
+        cls.create(
+            tag_name=tag_name
+        )
+
+    def get_tagged_entries(self):
+        return (
+            Entry.select().join(
+                TagEntry_Relationship, on=TagEntry_Relationship.tagged_entries
+            ).where(
+                TagEntry_Relationship.entry_tags == self)
+        )
+
+    class Meta:
+        database = DATABASE
+
+
+
+class TagEntry_Relationship(Model):
+    entry_tags = ForeignKeyField(Tag, to_field="id", related_name='entries')
+    tagged_entries = ForeignKeyField(Entry, to_field="id", related_name='tags')
 
     class Meta:
         database = DATABASE
         indexes = (
-            (('from_user', 'to_user'), True)
-        )"""
+            (('entry_tags', 'tagged_entries'), True),
+        )
 
+    @classmethod
+    def create_relationship(cls, tag, entry):
+        tag = (
+                Tag.get(Tag.tag_name == tag)
+              )
+        entry = (
+            Entry.get(Entry.title == entry)
+        )
+
+        cls.create(
+            entry_tags=tag.id,
+            tagged_entries=entry.id
+        )
+
+    def delete_relationship(self,tag,entry):
 
 
 def initialize():
     DATABASE.connect()
-    DATABASE.create_tables([User, Entry], safe=True)
-    #DATABASE.create_tables([User,Entry,Tag], safe=True)
+    DATABASE.create_tables([User,Entry,Tag,TagEntry_Relationship], safe=True)
     DATABASE.close()
 
     try:
@@ -126,10 +146,14 @@ def initialize():
     try:
         Entry.create_entry(username=1,
                      title='Hello',
-                     date='2020-12-27',
+                     date='2021-01-01',
                      time_spent=100,
                      what_i_learned='Hello World',
-                     resources_to_remember='python.org'
+                     resources_to_remember='python.org',
                      )
+        for tag in ['python','world','hello']:
+            Tag.create_tag(tag_name=tag)
+            TagEntry_Relationship.create_relationship(tag, 'Hello')
+
     except IntegrityError:
         pass
