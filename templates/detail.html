@@ -9,7 +9,9 @@
                 <div class="entry-list single">
                     <article>
                         <h1>{{ entry.title }}</h1>
-                        <time datetime="{{ entry.date }}">{{ entry.date.strftime('%m/%d/%Y') }}</time>
+                        <time datetime="{{ entry.date }}">
+                            {{ entry.date.strftime('%m/%d/%Y') }}
+                        </time>
                         <div class="entry">
                             <h3>Time Spent (Minutes): </h3>
                             <p>{{ entry.time_spent }}</p>
@@ -27,8 +29,11 @@
                             <ul>
                                 {% for tag in entry.get_tag_names() %}
                                     <li>
-                                        <a href="{{ url_for('tagged_entries', tag_name=tag.tag_name)  }}">
-                                            {{ tag.tag_name }} </a>
+                                        <a href="{{ url_for('tagged_entries',
+                                        tag_name=tag.tag_name)  }}"
+                                        >
+                                            {{ tag.tag_name }}
+                                        </a>
                                     </li>
                                 {% endfor %}
                             </ul>
@@ -37,8 +42,13 @@
                 </div>
             </div>
             <div class="edit">
-                <p><a href="{{ url_for('edit_entry', id = entry.id) }}">Edit Entry</a>
-                    <a href="{{ url_for('delete_entry', id = entry.id) }}">Delete Entry</a></p>
+                <p><a href="{{ url_for('edit_entry', id = entry.id) }}">
+                    Edit Entry
+                </a>
+                    <a href="{{ url_for('delete_entry', id = entry.id) }}">
+                        Delete Entry
+                    </a>
+                </p>
             </div>
         </section>
 

@@ -14,8 +14,12 @@
                         {% for field in form %}
                             {{ render_field(field) }}
                         {% endfor %}
-                        <input type="submit" value="Post Entry" class="button">
-                        <a href="{{ url_for('index') }}" class="button button-secondary">Cancel</a>
+                        <input type="submit" value="Post Entry"
+                               class="button"
+                        >
+                        <a href="{{ url_for('index') }}"
+                           class="button button-secondary">Cancel
+                        </a>
                     </form>
                 </div>
             </div>

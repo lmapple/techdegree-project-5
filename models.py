@@ -8,6 +8,7 @@ from flask_bcrypt import generate_password_hash, check_password_hash
 
 DATABASE = SqliteDatabase('journal.db')
 
+
 class User(UserMixin, Model):
     username = CharField(unique=True)
     password = CharField(max_length=100)
@@ -38,7 +39,6 @@ class User(UserMixin, Model):
             return False
 
 
-
 class Entry(Model):
     timestamp = DateTimeField(default=datetime.datetime.now)
     username = ForeignKeyField(
@@ -52,15 +52,14 @@ class Entry(Model):
     resources_to_remember = TextField()
     last_updated = DateTimeField(default=datetime.datetime.now)
 
-
     class Meta:
         database = DATABASE
         order_by = ('-timestamp',)
 
-
     @classmethod
-    def create_entry(cls, username, title, date, time_spent, what_i_learned,
-                  resources_to_remember):
+    def create_entry(cls, username, title, date, time_spent,
+                     what_i_learned, resources_to_remember
+                     ):
         cls.create(
             username=username,
             title=title,
@@ -73,12 +72,13 @@ class Entry(Model):
     def get_tag_names(self):
         return (
             Tag.select().join(
-                TagEntry_Relationship, on=TagEntry_Relationship.entry_tags
+                TagEntry_Relationship,
+                on=TagEntry_Relationship.entry_tags
             ).where(
-                TagEntry_Relationship.tagged_entries == self)
+                TagEntry_Relationship.tagged_entries == self
+            )
 
         )
-
 
 
 class Tag(Model):
@@ -93,19 +93,24 @@ class Tag(Model):
     def get_tagged_entries(self):
         return (
             Entry.select().join(
-                TagEntry_Relationship, on=TagEntry_Relationship.tagged_entries
+                TagEntry_Relationship,
+                on=TagEntry_Relationship.tagged_entries
             ).where(
-                TagEntry_Relationship.entry_tags == self)
+                TagEntry_Relationship.entry_tags == self
+            )
         )
 
     class Meta:
         database = DATABASE
 
 
-
 class TagEntry_Relationship(Model):
-    entry_tags = ForeignKeyField(Tag, to_field="id", related_name='entries')
-    tagged_entries = ForeignKeyField(Entry, to_field="id", related_name='tags')
+    entry_tags = ForeignKeyField(Tag, to_field="id",
+                                 related_name='entries'
+                                 )
+    tagged_entries = ForeignKeyField(Entry, to_field="id",
+                                     related_name='tags'
+                                     )
 
     class Meta:
         database = DATABASE
@@ -115,26 +120,27 @@ class TagEntry_Relationship(Model):
 
     @classmethod
     def create_relationship(cls, tag, entry):
-        tag = (
-                Tag.get(Tag.tag_name == tag)
-              )
-        entry = (
-            Entry.get(Entry.title == entry)
-        )
+        tag = (Tag.get(Tag.tag_name == tag)
+               )
+        entry = (Entry.get(Entry.title == entry)
+                 )
 
         cls.create(
             entry_tags=tag.id,
             tagged_entries=entry.id
         )
 
-    def delete_relationship(self,tag,entry):
-
 
 def initialize():
     DATABASE.connect()
-    DATABASE.create_tables([User,Entry,Tag,TagEntry_Relationship], safe=True)
+    DATABASE.create_tables(
+        [User,Entry,Tag,TagEntry_Relationship],
+        safe=True
+    )
     DATABASE.close()
 
+#Fulfills requirement to have an existing entry when the database is
+#first initialized. Also adds an initial user.
     try:
         User.create_user(
             username='user1',

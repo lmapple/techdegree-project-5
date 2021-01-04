@@ -4,6 +4,7 @@
 Reviewer Notes:
 
 I am going for an Exceeds Expectations grade.
+Pre-existing username is "user1" with a password of "password".
 
 
 Project Overview
