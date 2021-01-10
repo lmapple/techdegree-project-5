@@ -4,9 +4,7 @@ import datetime
 import forms
 import models
 
-from flask import (Flask, render_template, redirect, flash, url_for,
-                   g, abort
-                   )
+from flask import (Flask, render_template, redirect, flash, url_for, g)
 from flask_login import (LoginManager, login_user, logout_user,
                          login_required, current_user
                          )
@@ -90,7 +88,6 @@ def index():
 @app.route('/entries')
 def entries():
     user_entries = models.Entry.select().limit(20)
-    #https://peewee.readthedocs.io/en/latest/peewee/playhouse.html?highlight=pagination#PaginatedQuery
     return render_template('index.html', user_entries=user_entries)
 
 
@@ -116,26 +113,34 @@ def detail_entry(id):
 def new_entry():
     form = forms.NewEntry()
     if form.validate_on_submit():
-        models.Entry.create_entry(
-            username=g.username._get_current_object(),
-            title=form.title.data.strip(),
-            date=form.date.data,
-            time_spent=form.time_spent.data,
-            what_i_learned=form.what_i_learned.data.strip(),
-            resources_to_remember=form.resources_to_remember.data.strip(),
-        )
-        tag_list = form.tags.data.replace(","," ").split()
-        for tag in tag_list:
-            if models.DoesNotExist():
-                try:
-                    models.Tag.create_tag(tag)
-                except models.IntegrityError:
-                    pass
-            models.TagEntry_Relationship.create_relationship(
-                tag=tag,
-                entry=form.title.data.strip()
-            )
-        flash("Entry has been successfully posted.", "success")
+        if models.DoesNotExist():
+            try:
+                models.Entry.create_entry(
+                    username=g.username._get_current_object(),
+                    title=form.title.data.strip(),
+                    date=form.date.data,
+                    time_spent=form.time_spent.data,
+                    what_i_learned=form.what_i_learned.data.strip(),
+                    resources_to_remember=form.resources_to_remember.data.strip(),
+                )
+                tag_list = form.tags.data.replace(","," ").split()
+                for tag in tag_list:
+                    if models.DoesNotExist():
+                        try:
+                            models.Tag.create_tag(tag)
+                        except models.IntegrityError:
+                            pass
+                    if models.DoesNotExist():
+                        try:
+                            models.TagEntry_Relationship.create_relationship(
+                            tag=tag,
+                            entry=form.title.data.strip()
+                            )
+                        except models.IntegrityError:
+                            pass
+                flash("Entry has been successfully posted.", "success")
+            except models.IntegrityError:
+                flash("Entry was not posted.", "failure")
         return redirect(url_for('index'))
     return render_template('new.html', form=form)
 
@@ -159,47 +164,56 @@ def edit_entry(id):
                            )
 
     if form.validate_on_submit():
-        tag_list_new = form.tags.data.replace(",", " ").split()
+        if models.DoesNotExist():
+            try:
+                tag_list_new = form.tags.data.replace(",", " ").split()
 
-        #Delete tags that have been removed
-        for tag in tag_list:
-            if tag in tag_list_new:
-                pass
-            else:
-                tag_old = models.Tag.get(models.Tag.tag_name == tag)
-                relationship = models.TagEntry_Relationship.get(
-                    tagged_entries=models.Entry.
-                        get(models.Entry.id == entry.id),
-                    entry_tags=models.Tag.
-                        get(models.Tag.id == tag_old.id)
-                )
-                if len(tag_old.get_tagged_entries()) == 1:
-                    tag_old.delete_instance()
-                relationship.delete_instance()
+                #Create tags and tag-entry relationships if they do not exist
+                for tag in tag_list_new:
+                    if tag not in tag_list:
+                        if models.DoesNotExist():
+                            try:
+                                models.Tag.create_tag(tag)
+                            except models.IntegrityError:
+                                pass
+                        if models.DoesNotExist():
+                            try:
+                                models.TagEntry_Relationship.create_relationship(
+                                    tag=tag,
+                                    entry=entry.title
+                                )
+                            except models.IntegrityError:
+                                pass
 
-        #Create tags and tag-entry relationships if they do not exist
-        for tag in tag_list_new:
-            if tag not in tag_list:
-                if models.DoesNotExist():
-                    try:
-                        models.Tag.create_tag(tag)
-                    except models.IntegrityError:
+                #Delete tags that have been removed
+                for tag in tag_list:
+                    if tag in tag_list_new:
                         pass
-                    models.TagEntry_Relationship.create_relationship(
-                        tag=tag,
-                        entry=form.title.data.strip()
-                    )
+                    else:
+                        tag_old = models.Tag.get(models.Tag.tag_name == tag)
+                        relationship = models.TagEntry_Relationship.get(
+                            tagged_entries=models.Entry.
+                                get(models.Entry.id == entry.id),
+                            entry_tags=models.Tag.
+                                get(models.Tag.id == tag_old.id)
+                        )
+                        if len(tag_old.get_tagged_entries()) == 1:
+                            tag_old.delete_instance()
+                        relationship.delete_instance()
 
-        entry.username = g.username._get_current_object()
-        entry.title = form.title.data.strip()
-        entry.date = form.date.data
-        entry.time_spent = form.time_spent.data
-        entry.what_i_learned = form.what_i_learned.data.strip()
-        entry.resources_to_remember = form.resources_to_remember.data.strip()
-        entry.tags = form.tags.data.strip()
-        entry.last_updated = datetime.datetime.now()
-        entry.save()
-        flash("Entry has been successfully updated.", "success")
+                #Update all other fields
+                entry.username = g.username._get_current_object()
+                entry.title = form.title.data.strip()
+                entry.date = form.date.data
+                entry.time_spent = form.time_spent.data
+                entry.what_i_learned = form.what_i_learned.data.strip()
+                entry.resources_to_remember = form.resources_to_remember.data.strip()
+                entry.tags = form.tags.data.strip()
+                entry.last_updated = datetime.datetime.now()
+                entry.save()
+                flash("Entry has been successfully updated.", "success")
+            except models.IntegrityError:
+                flash("Entry was not updated.", "failure")
         return redirect(url_for('index'))
     return render_template('edit.html', entry=entry, form=form)
 

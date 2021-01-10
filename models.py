@@ -158,8 +158,11 @@ def initialize():
                      resources_to_remember='python.org',
                      )
         for tag in ['python','world','hello']:
-            Tag.create_tag(tag_name=tag)
-            TagEntry_Relationship.create_relationship(tag, 'Hello')
+            try:
+                Tag.create_tag(tag_name=tag)
+                TagEntry_Relationship.create_relationship(tag, 'Hello')
+            except IntegrityError:
+                TagEntry_Relationship.create_relationship(tag,'Hello')
 
     except IntegrityError:
         pass
