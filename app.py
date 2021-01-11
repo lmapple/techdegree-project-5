@@ -91,6 +91,7 @@ def entries():
     return render_template('index.html', user_entries=user_entries)
 
 
+#Listing route for entries with a specific tag
 @app.route('/entries/tag/<tag_name>')
 @login_required
 def tagged_entries(tag_name):

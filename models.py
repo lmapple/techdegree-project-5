@@ -105,9 +105,11 @@ class Tag(Model):
 
 
 class TagEntry_Relationship(Model):
+    #Tags attached to a certain entry
     entry_tags = ForeignKeyField(Tag, to_field="id",
                                  related_name='entries'
                                  )
+    #Entries with a certain tag
     tagged_entries = ForeignKeyField(Entry, to_field="id",
                                      related_name='tags'
                                      )
